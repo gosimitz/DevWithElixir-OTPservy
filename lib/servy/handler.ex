@@ -44,16 +44,16 @@ defmodule Servy.Handler do
     %{ conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
   def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
-    %{conv | status: 200, resp_body: "Bear #{id}"}
+    params = Map.put(conv.params, "id", id)
+    BearController.show(conv, params)
   end
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
-    %{ conv | status: 200, resp_body: "Teddy, Paddington, Polar"}
+    BearController.index(conv)
   end
   # name=Baloo&type=Brown
   def route(%Conv{method: "POST", path: "/bears"} = conv) do
-    params = %{"name" => "Baloo", "type" => "Brown"}
-    %{conv | status: 201, resp_body: "Create a #{conv.params["type"]}bear named #{conv.params["name"]}!"}
-  end
+    BearController.create(conv, conv.params)
+    end
 
   @doc "default path"
   def route(%Conv{path: path } = conv) do
@@ -124,6 +124,18 @@ IO.puts response
 
 request = """
 GET /bears?id=1 HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
+"""
+
+response = Servy.Handler.handle(request)
+
+IO.puts response
+
+request = """
+GET /bears HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
